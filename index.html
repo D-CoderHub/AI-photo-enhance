@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Enhancer - Free Online Photo Quality Tool</title>
+    <meta name="description" content="Enhance image quality instantly with AI-powered editing. Improve brightness, contrast, sharpness with real-time preview. Perfect for social media and professional use.">
+
+    <style>
+        :root {
+            --primary-color: #00ff9d;
+            --background-color: #1a1a1a;
+            --text-color: #ffffff;
+            --control-bg: #2d2d2d;
+            --border-color: #444;
+        }
+
+        [data-theme="light"] {
+            --background-color: #f5f5f5;
+            --text-color: #1a1a1a;
+            --control-bg: #ffffff;
+            --border-color: #ddd;
+            --primary-color: #007bff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: 0.3s all;
+        }
+
+        body {
+            background: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 2rem 0;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+        }
+
+        .upload-section {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--background-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .comparison-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 2rem auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.2);
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 60vh;
+            min-height: 400px;
+        }
+
+        #originalImage,
+        #enhancedImage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+            cursor: col-resize;
+            z-index: 10;
+        }
+
+        .controls {
+            background: var(--control-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .image-container {
+                height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Image Enhancer</h1>
+        
+        <div class="upload-section">
+            <input type="file" id="imageInput" accept="image/*" hidden>
+            <button id="uploadBtn">📤 Upload Image</button>
+            <button id="autoEnhanceBtn">🤖 Auto Enhance</button>
+            <button id="downloadBtn">⏬ Download</button>
+        </div>
+
+        <div class="comparison-container">
+            <div class="image-container">
+                <img src="" alt="Original" id="originalImage">
+                <img src="" alt="Enhanced" id="enhancedImage">
+                <div class="slider"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <label>🔆 Brightness</label>
+            <input type="range" id="brightness" min="-100" max="100" value="0">
+
+            <label>🌈 Contrast</label>
+            <input type="range" id="contrast" min="-100" max="100" value="0">
+
+            <label>🎨 Saturation</label>
+            <input type="range" id="saturation" min="-100" max="100" value="0">
+
+            <label>🔍 Sharpness</label>
+            <input type="range" id="sharpness" min="0" max="100" value="0">
+
+            <button id="resetBtn">🔄 Reset All</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = {
+                imageInput: document.getElementById('imageInput'),
+                uploadBtn: document.getElementById('uploadBtn'),
+                downloadBtn: document.getElementById('downloadBtn'),
+                autoEnhanceBtn: document.getElementById('autoEnhanceBtn'),
+                originalImage: document.getElementById('originalImage'),
+                enhancedImage: document.getElementById('enhancedImage'),
+                brightness: document.getElementById('brightness'),
+                contrast: document.getElementById('contrast'),
+                saturation: document.getElementById('saturation'),
+                sharpness: document.getElementById('sharpness'),
+                resetBtn: document.getElementById('resetBtn'),
+            };
+
+            let state = {
+                enhancedCanvas: null,
+            };
+
+            elements.uploadBtn.addEventListener('click', () => elements.imageInput.click());
+            elements.imageInput.addEventListener('change', handleImageUpload);
+            elements.downloadBtn.addEventListener('click', downloadImage);
+            elements.autoEnhanceBtn.addEventListener('click', autoEnhance);
+
+            function handleImageUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    elements.originalImage.src = event.target.result;
+                    elements.enhancedImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function autoEnhance() {
+                alert('Auto Enhance is not fully implemented yet.');
+            }
+
+            function downloadImage() {
+                const link = document.createElement('a');
+                link.download = 'enhanced-image.png';
+                link.href = elements.enhancedImage.src;
+                link.click();
+            }
+        });
+    </script>
+</body>
+</html>
