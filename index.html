@@ -13,7 +13,7 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
     }
     body {
       background: #f5f5f5;
@@ -73,7 +73,7 @@
       background: white;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .thumbnail-img {
       width: 100%;
@@ -115,18 +115,22 @@
 
   <!-- Main Content -->
   <main class="container">
-    <!-- Input Group -->
     <div class="input-group">
       <input type="text" id="videoUrl" placeholder="Paste YouTube Video URL Here..." />
       <button onclick="fetchThumbnails()"><i class="fas fa-download"></i> Get Thumbnails</button>
     </div>
-    
-    <!-- Thumbnails Grid -->
     <div id="thumbnailContainer" class="thumbnails-grid"></div>
   </main>
 
   <script>
-    // Fetch thumbnails based on the provided YouTube URL
+    // Extracts the video ID from various YouTube URL formats
+    function extractVideoId(url) {
+      const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    // Fetches thumbnails and displays them
     function fetchThumbnails() {
       const videoUrl = document.getElementById('videoUrl').value;
       const videoId = extractVideoId(videoUrl);
@@ -137,14 +141,7 @@
       displayThumbnails(videoId);
     }
 
-    // Extract video ID from various YouTube URL formats
-    function extractVideoId(url) {
-      const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      return (match && match[2].length === 11) ? match[2] : null;
-    }
-
-    // Display thumbnails for different resolutions and attach download functionality
+    // Displays thumbnail cards for different resolutions
     function displayThumbnails(videoId) {
       const qualities = [
         { res: '4K', url: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` },
@@ -170,31 +167,33 @@
       });
     }
 
-    // Download the image by fetching it as a blob and triggering a download via a temporary link
-    function downloadImage(url, filename) {
-      // Use a CORS proxy to bypass YouTube's cross-origin restrictions (for testing only)
-      const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
-      fetch(proxyUrl + url, { mode: 'cors' })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok: " + response.statusText);
-          }
-          return response.blob();
-        })
-        .then(blob => {
-          const blobUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = blobUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(blobUrl);
-        })
-        .catch(error => {
-          console.error("Error downloading image:", error);
-          alert('Failed to download image: ' + error.message);
-        });
+    // Downloads the image using a public CORS proxy
+    async function downloadImage(url, filename) {
+      try {
+        // Use a CORS proxy to bypass YouTube's restrictions.
+        const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
+        const response = await fetch(proxyUrl + url, { mode: 'cors' });
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        // Create and click a temporary link to trigger the download.
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+
+        // Clean up the DOM and blob URL.
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error("Download failed:", error);
+        alert('Download failed: ' + error.message);
+      }
     }
   </script>
 </body>
