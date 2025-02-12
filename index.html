@@ -1,200 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YouTube Thumbnail Downloader | Free HD Thumbnails</title>
-  <meta name="description" content="Free YouTube Thumbnail Downloader - Download HD quality thumbnails instantly.">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <style>
-    /* Global Styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
-    body {
-      background: #f5f5f5;
-      color: #333;
-      line-height: 1.6;
-    }
-    /* Header */
-    .header {
-      text-align: center;
-      padding: 2rem;
-      background: #ff0000;
-      color: white;
-    }
-    .header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-    /* Container */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-    /* Input Group */
-    .input-group {
-      display: flex;
-      gap: 1rem;
-      margin: 2rem 0;
-    }
-    input {
-      flex: 1;
-      padding: 1rem;
-      border: 2px solid #ddd;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
-    button {
-      padding: 1rem 2rem;
-      background: #ff0000;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #cc0000;
-    }
-    /* Thumbnails Grid */
-    .thumbnails-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem;
-      margin: 2rem 0;
-    }
-    .thumbnail-card {
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .thumbnail-img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      border-bottom: 2px solid #eee;
-    }
-    .download-options {
-      padding: 1rem;
-      text-align: center;
-    }
-    .download-btn {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      background: #28a745;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin: 0.5rem;
-      cursor: pointer;
-    }
-    /* Responsive */
-    @media (max-width: 768px) {
-      .input-group {
-        flex-direction: column;
-      }
-      button {
-        width: 100%;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Thumbnail Downloader</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            background: #222;
+        }
+
+        .container {
+            background: #333;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            color: white;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: #27ae60;
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #2ecc71;
+        }
+
+        button:disabled {
+            background: #777;
+            cursor: not-allowed;
+        }
+
+        #preview {
+            margin-top: 15px;
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 5px;
+            border: 1px solid #555;
+            margin-top: 10px;
+        }
+
+    </style>
 </head>
 <body>
-  <!-- Header Section -->
-  <header class="header">
-    <h1><i class="fab fa-youtube"></i> YouTube Thumbnail Downloader</h1>
-    <p>Download High-Quality Thumbnails in One Click</p>
-  </header>
 
-  <!-- Main Content -->
-  <main class="container">
-    <div class="input-group">
-      <input type="text" id="videoUrl" placeholder="Paste YouTube Video URL Here..." />
-      <button onclick="fetchThumbnails()"><i class="fas fa-download"></i> Get Thumbnails</button>
+    <div class="container">
+        <h1>YouTube Thumbnail Downloader</h1>
+
+        <input type="text" id="youtube-url" placeholder="Paste YouTube Video Link">
+        <button id="load-thumbnail">Load Thumbnail</button>
+
+        <div id="preview">
+            <h3>Thumbnail Preview:</h3>
+            <img id="thumbnail" style="display: none;">
+        </div>
+
+        <button id="download" style="display: none;">Download Thumbnail</button>
     </div>
-    <div id="thumbnailContainer" class="thumbnails-grid"></div>
-  </main>
 
-  <script>
-    // Extracts the video ID from various YouTube URL formats
-    function extractVideoId(url) {
-      const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      return (match && match[2].length === 11) ? match[2] : null;
-    }
+    <script>
+        const thumbnailImg = document.getElementById("thumbnail");
+        const downloadBtn = document.getElementById("download");
+        let thumbnailURL = "";
 
-    // Fetches thumbnails and displays them
-    function fetchThumbnails() {
-      const videoUrl = document.getElementById('videoUrl').value;
-      const videoId = extractVideoId(videoUrl);
-      if (!videoId) {
-        alert('Please enter a valid YouTube URL');
-        return;
-      }
-      displayThumbnails(videoId);
-    }
+        document.getElementById("load-thumbnail").addEventListener("click", function () {
+            let youtubeURL = document.getElementById("youtube-url").value;
+            let videoId = getYouTubeVideoId(youtubeURL);
 
-    // Displays thumbnail cards for different resolutions
-    function displayThumbnails(videoId) {
-      const qualities = [
-        { res: '4K', url: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` },
-        { res: 'HD', url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` },
-        { res: 'SD', url: `https://img.youtube.com/vi/${videoId}/sddefault.jpg` }
-      ];
+            if (videoId) {
+                thumbnailURL = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                thumbnailImg.src = thumbnailURL;
+                thumbnailImg.style.display = "block";
+                downloadBtn.style.display = "block";
+            } else {
+                alert("Invalid YouTube URL! Please enter a correct link.");
+            }
+        });
 
-      const container = document.getElementById('thumbnailContainer');
-      container.innerHTML = '';
-
-      qualities.forEach(quality => {
-        const card = document.createElement('div');
-        card.className = 'thumbnail-card';
-        card.innerHTML = `
-          <img src="${quality.url}" class="thumbnail-img" alt="${quality.res} thumbnail">
-          <div class="download-options">
-            <a href="#" onclick="downloadImage('${quality.url}', '${quality.res}.jpg'); return false;" class="download-btn">
-              <i class="fas fa-download"></i> ${quality.res}
-            </a>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // Downloads the image using a public CORS proxy
-    async function downloadImage(url, filename) {
-      try {
-        // Use a CORS proxy to bypass YouTube's restrictions.
-        const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
-        const response = await fetch(proxyUrl + url, { mode: 'cors' });
-        if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
+        function getYouTubeVideoId(url) {
+            let regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            let match = url.match(regex);
+            return match ? match[1] : null;
         }
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
 
-        // Create and click a temporary link to trigger the download.
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
+        downloadBtn.addEventListener("click", function () {
+            let link = document.createElement("a");
+            link.href = thumbnailURL;
+            link.download = "YouTube-Thumbnail.jpg";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
 
-        // Clean up the DOM and blob URL.
-        window.URL.revokeObjectURL(blobUrl);
-        document.body.removeChild(a);
-      } catch (error) {
-        console.error("Download failed:", error);
-        alert('Download failed: ' + error.message);
-      }
-    }
-  </script>
 </body>
 </html>
