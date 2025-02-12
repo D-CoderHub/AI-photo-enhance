@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Thumbnail Downloader</title>
     <style>
-        /* Google Font */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
         * {
@@ -15,7 +14,6 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        /* Full Page Background */
         body {
             display: flex;
             align-items: center;
@@ -23,10 +21,9 @@
             height: 100vh;
             width: 100vw;
             background: #222;
-            overflow: hidden;
+            padding: 20px;
         }
 
-        /* Main Container */
         .container {
             background: #333;
             padding: 25px;
@@ -39,7 +36,6 @@
 
         h1 {
             font-size: 22px;
-            color: white;
             margin-bottom: 15px;
         }
 
@@ -59,7 +55,6 @@
             border: 1px solid #666;
         }
 
-        /* Green Button */
         button {
             background: #27ae60;
             color: white;
@@ -77,7 +72,6 @@
             cursor: not-allowed;
         }
 
-        /* Preview Box */
         .preview-box {
             margin-top: 15px;
             width: 100%;
@@ -98,7 +92,6 @@
             display: none;
         }
 
-        /* Status Message */
         #status {
             margin-top: 10px;
             font-weight: bold;
@@ -126,56 +119,60 @@
 
     <script>
         document.getElementById("load-thumbnail").addEventListener("click", function () {
-            let youtubeLink = document.getElementById("youtube-link").value;
-            let videoId = extractVideoId(youtubeLink);
+            let youtubeLink = document.getElementById("youtube-link").value.trim();
             let statusText = document.getElementById("status");
             let thumbnail = document.getElementById("thumbnail");
+            let downloadBtn = document.getElementById("download");
 
-            if (!videoId) {
-                statusText.innerText = "Invalid YouTube URL!";
+            if (!youtubeLink) {
+                statusText.innerText = "⚠️ Please enter a YouTube video link!";
                 return;
             }
 
-            // First try maxresdefault, if not available, use hqdefault
-            let thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            let videoId = extractVideoId(youtubeLink);
+            if (!videoId) {
+                statusText.innerText = "❌ Invalid YouTube URL!";
+                return;
+            }
 
-            fetch(thumbnailUrl, { method: "HEAD" }).then(response => {
+            statusText.innerText = "⏳ Loading Thumbnail...";
+
+            let maxResUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            let hqUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+            fetch(maxResUrl, { method: "HEAD" }).then(response => {
                 if (response.ok) {
-                    loadThumbnail(thumbnailUrl);
+                    showThumbnail(maxResUrl);
                 } else {
-                    // If maxresdefault is not available, use hqdefault
-                    thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                    loadThumbnail(thumbnailUrl);
+                    showThumbnail(hqUrl);
                 }
             }).catch(() => {
-                statusText.innerText = "Failed to load thumbnail!";
+                statusText.innerText = "❌ Failed to load thumbnail!";
             });
 
-            function loadThumbnail(url) {
+            function showThumbnail(url) {
                 thumbnail.src = url;
                 thumbnail.style.display = "block";
-                document.getElementById("download").dataset.url = url;
-                document.getElementById("download").disabled = false;
-                statusText.innerText = "Thumbnail Loaded!";
+                downloadBtn.dataset.url = url;
+                downloadBtn.disabled = false;
+                statusText.innerText = "✅ Thumbnail Loaded!";
             }
         });
 
         document.getElementById("download").addEventListener("click", function () {
             let url = this.dataset.url;
-            
             fetch(url)
                 .then(response => response.blob())
                 .then(blob => {
                     let link = document.createElement("a");
-                    let objectURL = URL.createObjectURL(blob);
-                    link.href = objectURL;
+                    link.href = URL.createObjectURL(blob);
                     link.download = "youtube-thumbnail.jpg";
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                 })
                 .catch(() => {
-                    alert("Error downloading image!");
+                    alert("❌ Error downloading image!");
                 });
         });
 
