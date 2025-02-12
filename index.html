@@ -5,182 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Thumbnail Downloader</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            background: #222;
-            padding: 20px;
-        }
-
-        .container {
-            background: #333;
-            padding: 25px;
-            width: 400px;
-            border-radius: 10px;
-            box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
-            text-align: center;
-            color: white;
-        }
-
-        h1 {
-            font-size: 22px;
-            margin-bottom: 15px;
-        }
-
-        input, button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 5px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-            outline: none;
-        }
-
-        input {
-            background: #444;
-            color: white;
-            border: 1px solid #666;
-        }
-
-        button {
-            background: #27ae60;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background: #2ecc71;
-        }
-
-        button:disabled {
-            background: #777;
-            cursor: not-allowed;
-        }
-
-        .preview-box {
-            margin-top: 15px;
-            width: 100%;
-            height: 225px;
-            background: #444;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 5px;
-            overflow: hidden;
-            border: 2px solid #27ae60;
-        }
-
-        .preview-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-        }
-
-        #status {
-            margin-top: 10px;
-            font-weight: bold;
-            color: yellow;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input { width: 80%; padding: 10px; margin: 10px; }
+        button { padding: 10px 15px; cursor: pointer; margin-top: 10px; }
+        img { margin: 10px; max-width: 100%; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1>YouTube Thumbnail Downloader</h1>
-
-        <label for="youtube-link">Paste YouTube Video Link:</label>
-        <input type="text" id="youtube-link" placeholder="Enter YouTube video URL">
-        
-        <button id="load-thumbnail">Load Thumbnail</button>
-        <div id="status"></div>
-
-        <div class="preview-box">
-            <img id="thumbnail" alt="Thumbnail Preview">
-        </div>
-
-        <button id="download" disabled>Download Thumbnail</button>
-    </div>
+    <h2>YouTube Thumbnail Downloader</h2>
+    <input type="text" id="videoUrl" placeholder="Enter YouTube Video URL">
+    <button onclick="fetchThumbnail()">Get Thumbnail</button>
+    <div id="thumbnailContainer"></div>
+    <button id="downloadBtn" style="display: none;" onclick="downloadThumbnail()">Download</button>
 
     <script>
-        document.getElementById("load-thumbnail").addEventListener("click", function () {
-            let youtubeLink = document.getElementById("youtube-link").value.trim();
-            let statusText = document.getElementById("status");
-            let thumbnail = document.getElementById("thumbnail");
-            let downloadBtn = document.getElementById("download");
+        let currentImgUrl = "";
 
-            if (!youtubeLink) {
-                statusText.innerText = "⚠️ Please enter a YouTube video link!";
-                return;
-            }
+        function fetchThumbnail() {
+            let url = document.getElementById("videoUrl").value;
+            let videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+            if (!videoId) return alert("Invalid YouTube URL!");
 
-            let videoId = extractVideoId(youtubeLink);
-            if (!videoId) {
-                statusText.innerText = "❌ Invalid YouTube URL!";
-                return;
-            }
+            currentImgUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
-            statusText.innerText = "⏳ Loading Thumbnail...";
+            document.getElementById("thumbnailContainer").innerHTML = `<img src="${currentImgUrl}" alt="YouTube Thumbnail">`;
+            document.getElementById("downloadBtn").style.display = "block";
+        }
 
-            let maxResUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-            let hqUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-
-            fetch(maxResUrl, { method: "HEAD" }).then(response => {
-                if (response.ok) {
-                    showThumbnail(maxResUrl);
-                } else {
-                    showThumbnail(hqUrl);
-                }
-            }).catch(() => {
-                statusText.innerText = "❌ Failed to load thumbnail!";
-            });
-
-            function showThumbnail(url) {
-                thumbnail.src = url;
-                thumbnail.style.display = "block";
-                downloadBtn.dataset.url = url;
-                downloadBtn.disabled = false;
-                statusText.innerText = "✅ Thumbnail Loaded!";
-            }
-        });
-
-        document.getElementById("download").addEventListener("click", function () {
-            let url = this.dataset.url;
-            fetch(url)
-                .then(response => response.blob())
-                .then(blob => {
-                    let link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = "youtube-thumbnail.jpg";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                })
-                .catch(() => {
-                    alert("❌ Error downloading image!");
-                });
-        });
-
-        function extractVideoId(url) {
-            let match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-            return match ? match[1] : null;
+        function downloadThumbnail() {
+            let link = document.createElement("a");
+            link.href = currentImgUrl;
+            link.download = "YouTube_Thumbnail.jpg";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
-
 </body>
 </html>
