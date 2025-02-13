@@ -13,6 +13,7 @@
             padding: 20px;
         }
         h1 {
+            color: #ffffff;
             margin-bottom: 20px;
         }
         input {
@@ -22,10 +23,12 @@
             border: none;
             border-radius: 5px;
             font-size: 16px;
+            background-color: #333;
+            color: #ffffff;
         }
         button {
             background-color: #00ff00;
-            color: #000;
+            color: #ffffff;
             font-size: 16px;
             border: none;
             padding: 10px 15px;
@@ -48,6 +51,16 @@
             display: block;
             margin: 10px auto;
             width: 200px;
+            background-color: #00ff00;
+            color: #ffffff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .download-btn:hover {
+            background-color: #00cc00;
         }
     </style>
 </head>
@@ -84,13 +97,6 @@
                 downloadBtn.download = `youtube_thumbnail_${res}.jpg`;
                 downloadBtn.innerHTML = `Download ${res.toUpperCase()}`;
                 downloadBtn.classList.add("download-btn");
-                downloadBtn.style.backgroundColor = "#00ff00";
-                downloadBtn.style.color = "#000";
-                downloadBtn.style.padding = "10px";
-                downloadBtn.style.display = "block";
-                downloadBtn.style.textDecoration = "none";
-                downloadBtn.style.borderRadius = "5px";
-                downloadBtn.style.marginTop = "5px";
 
                 container.appendChild(imgElement);
                 container.appendChild(downloadBtn);
