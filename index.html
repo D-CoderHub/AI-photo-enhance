@@ -5,40 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Thumbnail Downloader</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        input { width: 80%; padding: 10px; margin: 10px; }
-        button { padding: 10px 15px; cursor: pointer; margin-top: 10px; }
-        img { margin: 10px; max-width: 100%; border: 1px solid #ccc; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #00ff00;
+            color: #000;
+            font-size: 16px;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #00cc00;
+        }
+        .thumbnail-container {
+            margin-top: 20px;
+        }
+        .thumbnail-container img {
+            width: 100%;
+            max-width: 400px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .download-btn {
+            display: block;
+            margin: 10px auto;
+            width: 200px;
+        }
     </style>
 </head>
 <body>
-    <h2>YouTube Thumbnail Downloader</h2>
-    <input type="text" id="videoUrl" placeholder="Enter YouTube Video URL">
-    <button onclick="fetchThumbnail()">Get Thumbnail</button>
-    <div id="thumbnailContainer"></div>
-    <button id="downloadBtn" style="display: none;" onclick="downloadThumbnail()">Download</button>
+    <h1>YouTube Thumbnail Downloader</h1>
+    <input type="text" id="videoUrl" placeholder="Paste YouTube Video Link Here">
+    <button onclick="fetchThumbnails()">Get Thumbnails</button>
+    
+    <div class="thumbnail-container" id="thumbnailContainer"></div>
 
     <script>
-        let currentImgUrl = "";
+        function fetchThumbnails() {
+            let videoUrl = document.getElementById("videoUrl").value;
+            let videoId = extractVideoId(videoUrl);
 
-        function fetchThumbnail() {
-            let url = document.getElementById("videoUrl").value;
-            let videoId = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
-            if (!videoId) return alert("Invalid YouTube URL!");
+            if (!videoId) {
+                alert("Invalid YouTube URL!");
+                return;
+            }
 
-            currentImgUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            let resolutions = ["maxresdefault", "sddefault", "hqdefault", "mqdefault", "default"];
+            let container = document.getElementById("thumbnailContainer");
+            container.innerHTML = ""; 
 
-            document.getElementById("thumbnailContainer").innerHTML = `<img src="${currentImgUrl}" alt="YouTube Thumbnail">`;
-            document.getElementById("downloadBtn").style.display = "block";
+            resolutions.forEach(res => {
+                let thumbnailUrl = `https://img.youtube.com/vi/${videoId}/${res}.jpg`;
+                
+                let imgElement = document.createElement("img");
+                imgElement.src = thumbnailUrl;
+                imgElement.alt = `Thumbnail - ${res}`;
+                
+                let downloadBtn = document.createElement("a");
+                downloadBtn.href = thumbnailUrl;
+                downloadBtn.download = `youtube_thumbnail_${res}.jpg`;
+                downloadBtn.innerHTML = `Download ${res.toUpperCase()}`;
+                downloadBtn.classList.add("download-btn");
+                downloadBtn.style.backgroundColor = "#00ff00";
+                downloadBtn.style.color = "#000";
+                downloadBtn.style.padding = "10px";
+                downloadBtn.style.display = "block";
+                downloadBtn.style.textDecoration = "none";
+                downloadBtn.style.borderRadius = "5px";
+                downloadBtn.style.marginTop = "5px";
+
+                container.appendChild(imgElement);
+                container.appendChild(downloadBtn);
+            });
         }
 
-        function downloadThumbnail() {
-            let link = document.createElement("a");
-            link.href = currentImgUrl;
-            link.download = "YouTube_Thumbnail.jpg";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function extractVideoId(url) {
+            let match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+            return match ? match[1] : null;
         }
     </script>
 </body>
